@@ -1,6 +1,6 @@
-Vendredi 7 octobre 
+7/10
 
-Snakemake / Singularity
+Snakemake / Docker
 
 Transcriptome = les transcrits, on a l'info de l'expression des gènes. Plus on séquence les transcrits d'un gène, plus il est exprimé (quantitatif). On peut aussi voir quels exons sont contenus par les transcrits d'un même gène (qualitatif). 
 Exome = ensemble des exons dans les gènes (ADN) codant les protéines du génome. L'intérêt est vraiment de voir s'il y a des mutations en amplifiant l'expression du gène.
