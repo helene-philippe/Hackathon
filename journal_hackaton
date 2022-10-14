@@ -13,3 +13,20 @@ Transcriptome = les transcrits, on a l'info de l'expression des gènes. Plus on 
 Exome = ensemble des exons dans les gènes (ADN) codant les protéines du génome. L'intérêt est vraiment de voir s'il y a des mutations en amplifiant l'expression du gène.
 
 Il faut d'abord voir quels sont les gènes plus ou moins exprimés à l'aide de l'exome, puis ensuite voir s'il y a des épissages différents en utilisant les séquences de transcriptomes. 
+
+14/10
+
+Compréhension du projet OK, pas de soucis.
+STAR vient avant featurecounts. STAR pour pouvoir mapper les reads sur les références il faut d'abord indexer les références, c'est une commande de STAR à trouver. Outil d'alignement des rends sur un génome de référence, mais STAR est un standard pour les génomes eucaryotes. STAR peut prend en compte le splicing (introns/exons) avec quelques commandes, voir documentation un peu dense mais avec toute l'information nécessaire. Vient ensuite le comptage avec featurecounts qui compte le nombre de rends alignés. STAR gênère un fichier d'alignement qui doit être créé au format BAM qui pourra être lu par Samtools. 
+SAM est un fichier texte, on peut en lire le contenu. BAM est pareil mais en format compressé, et CRAM idem mais encore plus compressé (très peu utilisé). 
+A partir du BAM on peut lancer l'outil de comptage featurecounts, puis vient DESeq2.
+On peut ajouter un autre outil, fastqc. 
+Données sur NCBI, l'outil faste-dump permet de récupérer, les fichiers sont gros donc faire sur la VM de l'IFB de préférence. On peut aussi récupérer les jeux de données et sélectionner un sous-échantillon pour développer le pipeline assez rapidement sans trop attendre pour avoir les résultats.
+Pour Docker, si jamais un soucis, on peut pull l'image sur internet et mettre ça de côté pour pouvoir avancer et revenir à la recette après. 
+On peut débuter le workflow, commencer doucement en 2 étapes: télécharger les data et faire un fastqc sur les data. Une fois compris, ça se déroule très bien. Chacun peut ensuite tester avec une image quelques commandes simples pour comprendre comment ça fonctionne. On peut faire la pipeline en bash et une fois comprise la transformer en snakemake car c'est assez difficile.
+Ne pas aller trop vite dès le début, prendre des petits morceaux de data (un chromosome à la fois?) pour vraiment comprendre avant de se lancer sur tout le génome. 
+Pour l'analyse différentielle, on est obligés d'avoir des réplicas, il faut prendre plusieurs échantillons. On peut aussi commencer l'analyse avec quelque chose de plus visuel en utilisant les packages directement. 
+
+Pour la récupération des jeux de données, quand on fait un fastq-dump. Les données NGS peuvent être pairées ou non (un fichier ou deux). Pairées -> deux fragments d'ADN liés l'un à l'autre. On peut utiliser soit les données simples soit les pairées, c'est à prendre en compte dans l'analyse. 
+Dans le comptage, le paramètre -S est important. Il prend 3 valeurs: 1, 2 ou 0. Cela dépend de comment les données de séquençages ont été générées à l'époque (dans un sens, dans l'autre, ou dans les deux). Si aucun read n'est mappé sur le génome avec featurecounts, changer le paramètre -S pour un autre et voir si cela fonctionne. 
+
