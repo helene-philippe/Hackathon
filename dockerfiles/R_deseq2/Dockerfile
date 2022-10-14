@@ -1,43 +1,83 @@
 ############################################################
-# Dockerfile to build DESeq2 container images
-# Based on Ubuntu
+# Dockerfile to build R image
 ############################################################
 
+FROM rocker/r-base:latest
+
+RUN R -e 'install.packages("BiocManager")' \
+&& R -e 'BiocManager::install("DESeq2")'
+#&& R --vanilla
+#&& ls 
+#&& ls /usr \
+#&& ls /usr/local \
+#&& ls /usr/local/bin
+ENTRYPOINT R --vanilla
+
+
+
+
+
+
+
+
+
+
 # Set the base image to Ubuntu
-FROM ubuntu:22.04
+#FROM ubuntu:22.04
 
-RUN apt-get clean
-# Add CRAN source to apt
-RUN echo "deb http://cran.r-project.org/bin/linux/ubuntu jammy-cran40/" > /etc/apt/sources.list.d/cran.list
-RUN apt-get update
-RUN apt-get install -y gnupg2 gnupg gnupg1
+#RUN ln -snf /usr/share/zoneinfo/$CONTAINER_TIMEZONE /etc/localtime && echo $CONTAINER_TIMEZONE > /etc/timezone \
+#&& apt-get update --fix-missing \
+#&& apt-get install -y libgomp1 libcurl4-gnutls-dev libpcre2-dev g++ gfortran wget gcc mono-mcs make libbz2-dev zlib1g zlib1g-dev liblzma5 liblzma-dev libncurses5 libncurses5-dev bzip2 \
+#&& cd /usr/local/ \
+#&& wget https://cran.r-project.org/src/base/R-4/R-4.2.1.tar.gz \ 
+#&& tar -xzvf R-4.2.1.tar.gz \
+#&& rm -rf R-4.2.1.tar.gz \
+#&& cd R-4.2.1 \
+#&& ./configure --with-readline=no --with-x=no \
+#&& make \
+#&& make install \
+#&& ls \
+#&& cd /usr/local/bin/ \
+#&& ls \
+#&& cd /usr/local/ \
+#&& chmod +x /usr/local/bin/R \
+#&& rm -rf R-4.2.1 \
+#&& apt-get remove -y wget gcc make libbz2-dev zlib1g-dev liblzma-dev libncurses-dev bzip2 \
+#&& apt-get autoremove -y \
+#&& apt-get clean \
+#&& rm -rf /var/lib/apt/lists/*
+#ENTRYPOINT ["/usr/local/bin/R"]
 
-# Add CRAN apt key
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
 
-# Update the repository sources lis
-RUN apt-get update
 
-# Install Latex
-RUN apt-get install --yes texlive-latex-base texlive-latex-extra 
 
-# Install libxml2 
-RUN apt-get install --yes libxml2-dev
 
-# Install R 3.1.0
-RUN apt-get install --yes r-base=3.1.0-1precise0 r-base-core=3.1.0-1precise0 r-base-dev=3.1.0-1precise0 r-base-html=3.1.0-1precise0 r-doc-html=3.1.0-1precise0 r-recommended=3.1.0-1precise0 r-cran-boot=1.3-11-1precise0 r-cran-class=7.3-10-1precise0 r-cran-cluster=1.15.2-1precise0 r-cran-codetools=0.2-8-2precise0 r-cran-foreign=0.8.61-1precise0 r-cran-kernsmooth=2.23-12-1precise0 r-cran-lattice=0.20-29-1precise0 r-cran-mass=7.3-33-1precise0 r-cran-matrix=1.1-3-1precise0 r-cran-mgcv=1.7-29-1precise0 r-cran-nlme=3.1.117-1precise0 r-cran-nnet=7.3-8-1precise0 r-cran-rpart=4.1-8-1precise0 r-cran-spatial=7.3-6-1precise0 r-cran-survival=2.37-7-1precise0 
 
-# Set CRAN repository to use
-RUN echo 'local({r <- getOption("repos"); r["CRAN"] <- "http://cran.r-project.org"; options(repos=r)})' > ~/.Rprofile
 
-# Install bioconductor
-RUN R -e 'source("http://bioconductor.org/biocLite.R"); biocLite("DESeq2"); install.packages("FactoMineR")'
 
-# Cleanup
-RUN apt-get clean
 
-# Default command to execute at startup of the container
-CMD R --no-save
 
-# Install vim
-RUN apt-get install --yes vim
+
+# Install wget and gnupg commands
+#RUN  apt-get update \
+ #&& apt-get install -y wget gnupg2 gnupg gnupg1 \
+ #&& rm -rf /var/lib/apt/lists/* \
+
+
+# Download (wget command) the public GPG key and onvert it in a format APT understands (gpg --dearmor command)
+#&& wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | gpg --dearmor -o /usr/share/keyrings/r-project.gpg \
+
+# Add R source list to sources.list.d directory = where apt looks for new sources
+#&& echo "deb [signed-by=/usr/share/keyrings/r-project.gpg] https://cloud.r-project.org/bin/linux/ubuntu jammy-cran40/" | tee -a /etc/apt/sources.list.d/r-project.list \
+
+
+# Update the package list so APT can read the new R source
+#&& apt update \
+
+# Install R
+#&& apt install -y --no-install-recommends r-base \
+
+# Install package DESeq2
+#&& R -e 'install.packages("BiocManager")' \
+#&& R -e 'BiocManager::install("DESeq2")'
+
