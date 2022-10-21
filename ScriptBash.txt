@@ -1,0 +1,58 @@
+    1  sudo apt-get update
+    2  sudo apt-get install g++
+    3  sudo apt-get install make
+    6  sudo apt install rna-star
+
+Installation de star 
+
+
+
+   54  wget https://ftp.ensembl.org/pub/release-108/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.20.fa.gz
+   56  gunzip -c H* > ref.fa
+   58  rm Homo_sapiens.GRCh38.dna.chromosome.20.fa.gz 
+
+Récuperation des séquences pour la création de l’index.(ici uniquement le chromosome 20) 
+
+
+
+
+   61  STAR --runThreadN 8 --runMode genomeGenerate --genomeDir ref/ --genomeFastaFiles ref.fa
+
+Création de l’index
+
+
+
+
+   63  wget https://ftp.ensembl.org/pub/release-108/gtf/homo_sapiens/Homo_sapiens.GRCh38.108.chr.gtf.gz
+  185  mv Homo_sapiens.GRCh38.108.chr.gtf input.gtf
+
+Téléchargement du .gtf et renommage en input.gtf pour Feature count
+
+
+
+
+  154  STAR --runMode alignReads --genomeDir ref/ --outSAMtype BAM SortedByCoordinate --readFilesIn Echanti.fastq --runThreadN 2 
+
+Mapping (alignement des séquences) (il faut donc avoir télécharger les séquences)
+
+
+
+
+  167  sudo apt-get install -y wget
+  168  sudo get https://github.com/ShiLab-Bioinformatics/subread/releases/download/2.0.2/subread-2.0.2-Linux-x86_64.tar.gz
+  169  sudo wget https://github.com/ShiLab-Bioinformatics/subread/releases/download/2.0.2/subread-2.0.2-Linux-x86_64.tar.gz
+  170  sudo tar -xzvf subread-2.0.2-Linux-x86_64.tar.gz
+  171  cp subread-2.0.2-Linux-x86_64/bin/featureCounts /usr/local/bin/featureCounts
+  172  sudo cp subread-2.0.2-Linux-x86_64/bin/featureCounts /usr/local/bin/featureCounts
+  173  sudo chmod +x /usr/local/bin/featureCounts
+  174  sudo rm subread-2.0.2-Linux-x86_64.tar.gz
+  175  sudo rm -rf subread-2.0.2-Linux-x86_64
+
+Installation de featureCounts 
+
+
+
+  186  featureCounts -T 8 -t gene -g gene_id -s 0 -a input.gtf -o output.counts Aligned.sortedByCoord.out.bam
+
+Application du feature count
+
