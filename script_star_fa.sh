@@ -7,3 +7,6 @@ wget "https://ftp.ensembl.org/pub/release-108/fasta/homo_sapiens/dna/Homo_sapien
 wget "https://ftp.ensembl.org/pub/release-108/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.Y.fa.gz"
 gunzip Homo*
 cat Homo* >> ref.fa
+wget https://ftp.ensembl.org/pub/release-108/gtf/homo_sapiens/Homo_sapiens.GRCh38.108.chr.gtf.gz
+gunzip *.gtf.gz
+mv *gtf ref.gtf
