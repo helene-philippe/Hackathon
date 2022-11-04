@@ -1,0 +1,60 @@
+try:
+        shell("mkdir txt_files")
+except:
+        print("le dossier txt_files existe déjà :) ")
+
+try:
+        shell("mkdir sra_files")
+except:
+        print("le dossier sra_files existe déjà")
+
+try:
+        shell(" mkdir fastq_files")
+except:
+        print("le dossier fastq_files existe déjà :) ")
+
+shell("chmod +x txt_files") # on s'assure qu'il n'y aura pas de problème de droit d'accès
+shell("chmod +x fastq_files")
+shell("chmod +x sra_files")
+#shell("export PATH=$PATH:$HOME/sratoolkit.3.0.0-ubuntu64/bin")
+#shell("vdb-config --restore-defaults")
+
+LIST_SRA = ['SRR628589', 'SRR628588']
+
+# on crée un fichier txt pour chaque numero d'accession
+for item in LIST_SRA :
+        #print(item)
+        with open("txt_files/{item}.txt".format(item = item), "w") as f:
+                f.write(str(item))
+
+rule all:
+        input:
+                expand("fastq_files/{list_sra}_1_fastqc.html", list_sra = LIST_SRA), expand("fastq_files/{list_sra}_2_fastqc.html", list_sra = LIST_SRA)
+
+rule import_rsa:
+        input : "txt_files/{list_sra}.txt"
+        output: "sra_files/{list_sra}.sra"
+        container : "docker://pegi3s/sratoolkit:2.10.0"
+        shell:  "prefetch -v {wildcards.list_sra} > sra_files/{wildcards.list_sra}.sra"
+
+rule fastq_dump:
+        input: "sra_files/{list_sra}.sra"
+        output:
+                "fastq_files/{list_sra}_2.fastq",
+                "fastq_files/{list_sra}_1.fastq"
+        container: "docker://pegi3s/sratoolkit:2.10.0"
+        shell: "fasterq-dump -v --split-files {wildcards.list_sra} --outdir fastq_files/ "
+
+rule fastqc:
+        input: "fastq_files/{list_sra}_1.fastq", "fastq_files/{list_sra}_2.fastq"
+        output: "fastq_files/{list_sra}_2_fastqc.html", "fastq_files/{list_sra}_1_fastqc.html"
+        container : "docker://biocontainers/fastqc:v0.11.9_cv8"
+        shell:
+                """
+                fastqc {input} -O fastq_files/
+                rm -rf fastq_files/{wildcards.list_sra}_1_fastqc.zip
+                rm -rf fastq_files/{wildcards.list_sra}_2_fastqc.zip
+
+
+
+
