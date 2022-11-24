@@ -8,3 +8,10 @@ Main objectives :
 
 - handling Snakemake workflow manager
 - create a reproducible analysis 
+
+# -------------------------------------------------------------
+
+The "main" file contains the script to be executed by the user. 
+It makes sure all the requirements are met and then launches the snakefile. 
+
+

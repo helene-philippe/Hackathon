@@ -1,0 +1,32 @@
+#!/bin/bash 
+
+# sur la VM on active l'environneemnt de travail 
+conda activate snakemake 
+
+#on crée un repertoire de travail 
+mkdir hackathon 
+
+# on télécharge à a amin ce qu'on n'a pas réussi à télécharger en image docker 
+# 1 - fastq 
+wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/3.0.0/sratoolkit.3.0.0-ubuntu64.tar.gz
+tar -xvzf sratoolkit.3.0.0-ubuntu64.tar.gz
+
+# 2 - feature counts 
+wget https://github.com/ShiLab-Bioinformatics/subread/releases/download/2.0.2/subread-2.0.2-Linux-x86_64.tar.gz
+tar -xzvf subread-2.0.2-Linux-x86_64.tar.gz
+
+export PATH=$PATH:$HOME/sratoolkit.3.0.0-ubuntu64/bin
+
+cd hackathon 
+
+vdb-config --restore-defaults # ----> malheureusement ça ne fonctionne pas, on doit le faire petit à petit à la main ? 
+
+# load defaults settings 
+# exit vdb-config tool    
+
+# on crée l'index avant de lancer le snakefile parce que pour l'instant
+# on ne parvient pas à integrer un bloc sans input dans le snakefile 
+source get_genome_ref 
+
+# on lance le snakemake 
+snakemake -s snakefile --cores 16 
