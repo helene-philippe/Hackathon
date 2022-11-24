@@ -1,118 +1,133 @@
 try:
-	shell("mkdir txt_files")
+        shell("mkdir txt_files")
 except:
-	#print("le dossier txt_files existe déjà :) ")
-	pass
-try: 
-	shell("mkdir sra_files")
+        #print("le dossier txt_files existe déjà :) ")
+        pass
+try:
+        shell("mkdir sra_files")
 except:
-	#print("le dossier sra_files existe déjà")
-	pass
+        #print("le dossier sra_files existe déjà")
+        pass
 try:
-	shell(" mkdir fastq_files")
-except: 
-	#print("le dossier fastq_files existe déjà :) ")
-	pass
-
+        shell(" mkdir fastq_files")
+except:
+        #print("le dossier fastq_files existe déjà :) ")
+        pass
+		  
 try:
-	shell(" mkdir ref")
-except: 
-	#print("le dossier ref existe déjà :) ")
-	pass
+        shell(" mkdir ref")
+except:
+        #print("le dossier ref existe déjà :) ")
+        pass
 
-shell("chmod +x txt_files") # on s'assure qu'il n'y aura pas de problème de droit d'accès
-shell("chmod +x fastq_files") 
+shell("chmod +x txt_files") # on s'assure qu'il n'y aura pas de problème" de droit d'accès
+shell("chmod +x fastq_files")
 shell("chmod +x sra_files")
 shell("chmod +x ref")
 
 #shell("export PATH=$PATH:$HOME/sratoolkit.3.0.0-ubuntu64/bin")
-#shell("vdb-config --restore-defaults") 
+#shell("vdb-config --restore-defaults")
 
 LIST_SRA = ['SRR628589', 'SRR628588']
 
 # on crée un fichier txt pour chaque numero d'accession
-for item in LIST_SRA : 
-	#print(item)
-	with open("txt_files/{item}.txt".format(item = item), "w") as f:
-		f.write(str(item))
-	
+for item in LIST_SRA :
+        #print(item)
+        with open("txt_files/{item}.txt".format(item = item), "w") as f:
+                f.write(str(item))
+         
 rule all:
-	input: expand("{list_sra}Aligned.sortedByCoord.out.bam", list_sra = LIST_SRA)
-	#input: "Aligned.sortedByCoord.out.bam"
-	#input: "ref/genomeParameters.txt"
-	#expand(fasta_files/{list_sra}_1_fastqc.html", list_sra = LIST_SRA), expand("fastq_files/{list_sra}_2_fastqc.html", list_sra = LIST_SRA)
+        input: expand("{list_sra}Counts", list_sra = LIST_SRA)
+        #input: expand("{list_sra}Aligned.sortedByCoord.out.bam", list_sra = LIST_SRA)
+        #input: "Aligned.sortedByCoord.out.bam"
+        #input: ref
+        #expand(fasta_files/{list_sra}_1_fastqc.html", list_sra = LIST_SRA), expand("fastq_files/{list_sra}_2_fastqc.html", list_sra = LIST_SRA)
 
 
 rule import_rsa:
-	input : "txt_files/{list_sra}.txt"
-	output: "sra_files/{list_sra}.sra"
-	container : "docker://pegi3s/sratoolkit:2.10.0"
-	shell: 	
-		"""
-		prefetch -v {wildcards.list_sra} > sra_files/{wildcards.list_sra}.sra
-		rm -rf {wildcards.list_sra}
-		"""
-	
-rule fastq_dump:
-	input: "sra_files/{list_sra}.sra"
-	output: 
-		"fastq_files/{list_sra}_2.fastq",
-		"fastq_files/{list_sra}_1.fastq"
+        input : "txt_files/{list_sra}.txt"
+        output: "sra_files/{list_sra}.sra"
+        container : "docker://pegi3s/sratoolkit:2.10.0"
+        shell:
+                """
+                prefetch -v {wildcards.list_sra} > sra_files/{wildcards.list_sra}.sra
+                rm -rf {wildcards.list_sra}
+                """
 
-	shell: "fastq-dump -v --split-files {wildcards.list_sra} --outdir fastq_files/ "
+rule fastq_dump:
+        input: "sra_files/{list_sra}.sra"
+        output:
+                "fastq_files/{list_sra}_2.fastq",
+                "fastq_files/{list_sra}_1.fastq"
+
+        shell: "fastq-dump -v --split-files {wildcards.list_sra} --outdir fastq_files/ "
 
 rule fastqc:
-	input: "fastq_files/{list_sra}_1.fastq", "fastq_files/{list_sra}_2.fastq"
-	output: "fastq_files/{list_sra}_2_fastqc.html", "fastq_files/{list_sra}_1_fastqc.html"
-	shell:
-    		"""
-   		fastqc {input} -O fastq_files/
-		rm -rf fastq_files/{wildcards.list_sra}_1_fastqc.zip
-		rm -rf fastq_files/{wildcards.list_sra}_2_fastqc.zip
-   		"""
+        input: "fastq_files/{list_sra}_1.fastq", "fastq_files/{list_sra}_2.fastq"
+        output: "fastq_files/{list_sra}_2_fastqc.html", "fastq_files/{list_sra}_1_fastqc.html"
+        shell:
+                """
+                fastqc {input} -O fastq_files/
+                rm -rf fastq_files/{wildcards.list_sra}_1_fastqc.zip
+                rm -rf fastq_files/{wildcards.list_sra}_2_fastqc.zip
+                """
 
 
-# Maintenant, passons à STAR. 
-# Dans un premier temps, on télécharge le génome de référence. 
+# Maintenant, passons à STAR.
+# Dans un premier temps, on télécharge le génome de référence.
 # On télécharge tous les chromosomes et on les concatene en un unique fichier de référence.
 
 rule get_genome_ref:
-	output: fa = "ref.fa",
-		gtf = "ref.gtf"
-	shell: "source get_genome_ref" 
+        #input : "fastq_files/{list_sra}_1_fastqc.html" # n'est pas nécéssaire mais c'est pour lancer cette rule il nous faut un input (?)
+        output: fa = "ref.fa",
+                gtf = "ref.gtf"
+        shell: "source get_genome_ref"
+
+print('avant index')
 
 rule index:
-	input: 
-		fa = "ref.fa",
-		gtf = "ref.gtf"
-	output: directory('ref')
-	threads: 16
-	shell: 
-		'STAR --runThreadN {threads}'
-		'--runMode genomeGenerate '
-		'--genomeDir ref '
-		'--genomeFastaFiles {input.fa}'
-		'--sjdbGTFfile {input.gtf}'
-		'--sjdbOverhang 100' 
+        input:
+                fa = "ref.fa",
+                gtf = "ref.gtf"
+        output: directory('ref')
+        threads: 16
+        shell:
+                'STAR --runThreadN {threads} '
+                '--runMode genomeGenerate '
+                '--genomeDir ref '
+                '--genomeFastaFiles {input.fa} '
+                '--sjdbGTFfile {input.gtf} '
+                '--sjdbOverhang 100 '
+
+
+print('avant mapping')
 
 rule mapping:
-	input:
-		fastq1 = "fastq_files/{list_sra}_1.fastq",
-		fastq2 = "fastq_files/{list_sra}_2.fastq",
-		refdir = directory('ref') 
+        input:
+                fastq1 = "fastq_files/{list_sra}_1.fastq",
+                fastq2 = "fastq_files/{list_sra}_2.fastq",
+                #refdir = directory('ref')
+        output:
+                bam1 = "{list_sra}Aligned.sortedByCoord.out.bam"
 
-	output: 
-		bam1 = "{list_sra}Aligned.sortedByCoord.out.bam"
-	
-	threads : 16 
+        threads : 16
 
-	shell: 
-		'STAR --runThreadN {threads} '
-		'--genomeDir {input.refdir} ' 
-		'--runMode alignReads '		
-		'--readFilesIn {input.fastq1} {input.fastq2} '
-		'--outFileNamePrefix {wildcards.list_sra} '
-		'--outSAMtype BAM SortedByCoordinate '
-		
-		
-			
+        shell:
+                'STAR --runThreadN {threads} '
+                '--genomeDir ref '
+                '--runMode alignReads '
+                '--readFilesIn {input.fastq1} {input.fastq2} '
+                '--outFileNamePrefix {wildcards.list_sra} '
+                '--outSAMtype BAM SortedByCoordinate '
+
+rule feature_counts:
+        input :
+                gtf = "ref.gtf",
+                bam = "{list_sra}Aligned.sortedByCoord.out.bam"
+
+        output :
+                counts = "{list_sra}Counts"
+        threads : 16
+        shell :
+                'featureCounts -T {threads} -t gene -g gene_id -p -s 0 -a {input.gtf} -o {output.counts} {input.bam}'
+                                                           
