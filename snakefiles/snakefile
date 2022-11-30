@@ -59,12 +59,14 @@ rule fastq_dump:
 	output: 
 		"fastq_files/{list_sra}_2.fastq",
 		"fastq_files/{list_sra}_1.fastq"
-
+	container: "docker://pegi3s/sratoolkit:2.10.0"
 	shell: "fastq-dump -v --split-files {wildcards.list_sra} --outdir fastq_files/ "
+	
 
 rule fastqc:
 	input: "fastq_files/{list_sra}_1.fastq", "fastq_files/{list_sra}_2.fastq"
 	output: "fastq_files/{list_sra}_2_fastqc.html", "fastq_files/{list_sra}_1_fastqc.html"
+	container : "docker://biocontainers/fastqc:v0.11.9_cv8"
 	shell:
     		"""
    		fastqc {input} -O fastq_files/
